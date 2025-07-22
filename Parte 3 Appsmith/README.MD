@@ -1,3 +1,6 @@
+Video Explicativo:
+
+https://www.loom.com/share/025679b75ce44837a470da7c83c34e11?sid=1cdd758d-904a-4051-b652-b8a58921e1a5
 
 # Url Publica del front end
 
