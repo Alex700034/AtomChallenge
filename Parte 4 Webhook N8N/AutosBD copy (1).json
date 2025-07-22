@@ -1,0 +1,285 @@
+{
+  "name": "AutosBD copy",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "0465c6e3-a2f3-4ca0-9cbe-8cd4cb24c395",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -440,
+        20
+      ],
+      "id": "c7404cbc-c652-48c4-abe1-76a8b2d32749",
+      "name": "Webhook",
+      "webhookId": "0465c6e3-a2f3-4ca0-9cbe-8cd4cb24c395"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $input.all() }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        960,
+        -120
+      ],
+      "id": "d4e13f73-4852-4e14-a09e-e57838105882",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appHHCHSzJ9vea1qa",
+          "mode": "list",
+          "cachedResultName": "BDVehiculosCH",
+          "cachedResultUrl": "https://airtable.com/appHHCHSzJ9vea1qa"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblucelMw7QJgU41L",
+          "mode": "list",
+          "cachedResultName": "BDVehiculos",
+          "cachedResultUrl": "https://airtable.com/appHHCHSzJ9vea1qa/tblucelMw7QJgU41L"
+        },
+        "filterByFormula": "=AND({Tipo} = \"{{ $json.tipo }}\", {Marca} = \"{{ $json.marca }}\")",
+        "options": {
+          "fields": [
+            "Marca",
+            "Modelo",
+            "Año",
+            "Información General",
+            "Precio (USD)",
+            "Estado",
+            "Último Mantenimiento",
+            "Tipo"
+          ]
+        },
+        "sort": {
+          "property": [
+            {
+              "field": "Modelo"
+            },
+            {
+              "field": "Marca"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        420,
+        -100
+      ],
+      "id": "27ab86b5-9d56-4954-a462-512c73a14625",
+      "name": "Search records",
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "iVR8jOhBpjXG0zRU",
+          "name": "Airtable Personal Access Token account"
+        }
+      },
+      "onError": "continueErrorOutput",
+      "notes": "Error"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "b9bb7ba9-1a95-4eed-b2ca-e6fd2f1bbb67",
+              "leftValue": "={{ $json.tipo }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        100,
+        20
+      ],
+      "id": "89ac05c5-d80b-43fd-a05c-ebb6791d032b",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"Model\": \"No se encontro ningun modelo\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        900,
+        80
+      ],
+      "id": "d0240380-d9d0-40b2-8af6-016f8a111082",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const clean = (text) => {\n  if (!text || typeof text !== 'string') return \"\";\n  const firstWord = text.split(/[\\s.,]+/)[0];\n  return firstWord;\n};\n\nconst tipoRaw = $input.first().json.body.tipo;\nconst marcaRaw = $input.first().json.body.marca;\n\nif (!tipoRaw || !marcaRaw) {\n  throw new Error(\"Faltan campos obligatorios: 'tipo' y/o 'marca'.\");\n}\n\n// Limpieza básica\nconst tipoLimpio = clean(tipoRaw);\nconst marcaLimpia = clean(marcaRaw);\n\n// Formateo\nconst tipo = tipoLimpio.toUpperCase();\n\nlet marca;\nif (marcaLimpia.toLowerCase() === \"bmw\",\"Bmw\",\"BMW\") {\n  marca = \"BMW\"; // Excepción\n} else {\n  marca = marcaLimpia.charAt(0).toUpperCase() + marcaLimpia.slice(1).toLowerCase();\n}\n\nreturn [{\n  json: {\n    tipo,\n    marca\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        20
+      ],
+      "id": "b8f6d7cb-3864-4f2b-af21-9340b9a8f1ec",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "2404b069-aeac-44f1-ac73-d2a349a339af",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        660,
+        -120
+      ],
+      "id": "79c13e0a-4bed-47fc-bd91-e90cc75ebc1d",
+      "name": "If1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search records": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Search records",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "93208222-2ff0-40d3-8eec-cb756bfbdd88",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ff38a89fd3bb290d6017bce3c34973507782e13ca4a55590eaaeae5ae54b9a98"
+  },
+  "id": "EYbMo2i2OrBMGtTk",
+  "tags": []
+}

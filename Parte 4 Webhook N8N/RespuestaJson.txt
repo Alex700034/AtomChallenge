@@ -1,0 +1,36 @@
+[
+    {
+        "json": {
+            "id": "recp670auHsR2SRoV",
+            "createdTime": "2025-07-18T22:38:33.000Z",
+            "Tipo": "SEDAN",
+            "Marca": "BMW",
+            "Modelo": "2 Series",
+            "Año": 2023,
+            "Información General": "SEDAN BMW 2 Series semi nuevo con frenos ABS, bluetooth, tracción AWD.",
+            "Precio (USD)": 21436,
+            "Estado": "Muy bueno",
+            "Último Mantenimiento": "2024-08-05"
+        },
+        "pairedItem": {
+            "item": 0
+        }
+    },
+    {
+        "json": {
+            "id": "rec0YaLmBIY95AoBJ",
+            "createdTime": "2025-07-18T22:38:33.000Z",
+            "Tipo": "SEDAN",
+            "Marca": "BMW",
+            "Modelo": "X3",
+            "Año": 2024,
+            "Información General": "SEDAN BMW X3 semi nuevo con asistente de conducción, eficiencia híbrida, pantalla táctil.",
+            "Precio (USD)": 16754,
+            "Estado": "Muy bueno",
+            "Último Mantenimiento": "2023-10-22"
+        },
+        "pairedItem": {
+            "item": 1
+        }
+    }
+]
