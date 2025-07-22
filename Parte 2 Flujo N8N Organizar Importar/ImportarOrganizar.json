@@ -1,0 +1,521 @@
+{
+  "name": "ImportarOrganizar",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.airtable.com/v0/meta/bases/appHHCHSzJ9vea1qa/tables",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"description\": \"Tabla de tipo y marca\",\n    \"fields\": [\n      {\n        \"name\": \"Tipo\",\n        \"type\": \"singleLineText\"\n      },\n      {\n        \"name\": \"Marca\",\n        \"type\": \"singleLineText\"\n      },\n{\n        \"name\": \"Modelo\",\n        \"type\": \"singleLineText\"\n      },\n{\n        \"name\": \"Año\",\n        \"type\": \"singleLineText\"\n      },\n{\n        \"name\": \"Informacion General\",\n        \"type\": \"singleLineText\"\n      }\n    ],\n    \"name\": \"{{ $json.name }}\"\n  } ",
+        "options": {
+          "response": {
+            "response": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1940,
+        40
+      ],
+      "id": "2315f84c-124f-4d0d-a603-fbf10be3757d",
+      "name": "Crear Tabla en AirTable",
+      "executeOnce": true,
+      "retryOnFail": false,
+      "maxTries": 5,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "lgdGQXmAscHqFr2H",
+          "name": "Airtable Personal Access Token account 2"
+        },
+        "airtableApi": {
+          "id": "GZNWUGX49fE6zu9B",
+          "name": "Airtable account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const grouped = {};\nfor (const item of items) {\n  const tipo = item.json.Tipo;\n  const marca = item.json.Marca;\n  const nombreTabla = `${tipo} - ${marca}`;\n\n   if (!grouped[nombreTabla]) grouped[nombreTabla] = [];\n  grouped[nombreTabla].push(item.json);\n}\n\nreturn Object.entries(grouped).map(([name, registros]) => ({\n  json: { name, registros }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1280,
+        -220
+      ],
+      "id": "d4178e50-7932-49ac-9330-88074c736efa",
+      "name": "Organizar Datos"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1ALRiQTeWdfrDn0lpZ-dzRkBftFsyH13fWAnec3pc9rs",
+          "mode": "list",
+          "cachedResultName": "BDVehiculosCH",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ALRiQTeWdfrDn0lpZ-dzRkBftFsyH13fWAnec3pc9rs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "BDVehiculos",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ALRiQTeWdfrDn0lpZ-dzRkBftFsyH13fWAnec3pc9rs/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        1080,
+        -220
+      ],
+      "id": "d2507b41-3b49-4e71-8b79-5c0976b16350",
+      "name": "Obtener datos desde GoogleSheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "IXnJiM9GWtG1dN3X",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "daysInterval": 2,
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        640,
+        -300
+      ],
+      "id": "33199974-a185-4588-b693-41afa0bcb22a",
+      "name": "Cron Cada 2 Dias."
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "advanced": true,
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "table",
+              "field2": "name"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2360,
+        -400
+      ],
+      "id": "3b8a087f-c65f-47a9-99a5-e2174953b646",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "const tabla = items[0].json.tabla;\nconst registros = items[0].json.registros;\nconst id = $input.first().json.id\n\nreturn registros.map(registro => ({\n  json: {\n    tabla,\n    id,\n        ...registro\n  }, \n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2560,
+        -400
+      ],
+      "id": "37d3dc4c-e0cd-4415-a4d5-0bd359e95845",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "base": {
+          "__rl": true,
+          "value": "appHHCHSzJ9vea1qa",
+          "mode": "list",
+          "cachedResultName": "BDVehiculosCH",
+          "cachedResultUrl": "https://airtable.com/appHHCHSzJ9vea1qa"
+        },
+        "table": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Informacion General": "={{ $json['Información General'] }}",
+            "Modelo": "={{ $json.Modelo }}",
+            "Marca": "={{ $json.Marca }}",
+            "Tipo": "={{ $json.Tipo }}",
+            "Año": "=\"{{ $json['Año'] }}\""
+          },
+          "matchingColumns": [
+            "Informacion General"
+          ],
+          "schema": [
+            {
+              "id": "Tipo",
+              "displayName": "Tipo",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Marca",
+              "displayName": "Marca",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Modelo",
+              "displayName": "Modelo",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Año",
+              "displayName": "Año",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Informacion General",
+              "displayName": "Informacion General",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        2800,
+        -400
+      ],
+      "id": "368a743c-f6e1-40d3-9e76-28948ce18f7a",
+      "name": "Create or update a record",
+      "executeOnce": false,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "iVR8jOhBpjXG0zRU",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "base",
+        "operation": "getSchema",
+        "base": {
+          "__rl": true,
+          "value": "appHHCHSzJ9vea1qa",
+          "mode": "list",
+          "cachedResultName": "BDVehiculosCH",
+          "cachedResultUrl": "https://airtable.com/appHHCHSzJ9vea1qa"
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1080,
+        -400
+      ],
+      "id": "60654f02-c69a-4fde-8c51-bd8a224552bc",
+      "name": "Get base schema",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "lgdGQXmAscHqFr2H",
+          "name": "Airtable Personal Access Token account 2"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1720,
+        -420
+      ],
+      "id": "e3fb1bdb-afb9-401d-9bad-59e1fd456d75",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const conteo = {};\nconst resultados = [];\n\n// 🔹 Paso 1: contar cuántas veces aparece cada name\nfor (const item of items) {\n  const nombre = item.json.name?.trim();\n  if (nombre) {\n    conteo[nombre] = (conteo[nombre] || 0) + 1;\n  }\n}\n\n// 🔹 Paso 2: incluir solo los que aparecen una vez\nfor (const item of items) {\n  const nombre = item.json.name?.trim();\n  if (conteo[nombre] === 1) {\n    resultados.push(item);\n  }\n}\n\nreturn resultados;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1960,
+        -440
+      ],
+      "id": "4e7da856-4b56-44ca-90ac-b7165747a7e6",
+      "name": "Code4"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items\n  .filter(item => item.json.name?.trim() !== \"BDVehiculos\")\n  .map(item => {\n    const { id, name, primaryFieldId } = item.json;\n    return {\n      json: {\n        id,\n        name,\n        primaryFieldId\n      }\n    };\n  });\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1300,
+        -400
+      ],
+      "id": "064d6af5-98b5-45d3-bd52-33f7dd11713d",
+      "name": "Remover Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  const { name } = item.json;\n  return {\n    json: {\n      name\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1500,
+        -300
+      ],
+      "id": "7ac7fd32-dc2a-4dbd-859a-bdc2b981f4d4",
+      "name": "Indexar por nombre omitir el resto"
+    },
+    {
+      "parameters": {
+        "jsCode": "const grouped = {};\nfor (const item of items) {\n  const tipo = item.json.Tipo;\n  const marca = item.json.Marca;\n  const nombreTabla = `${tipo} - ${marca}`;\n\n   if (!grouped[nombreTabla]) grouped[nombreTabla] = [];\n  grouped[nombreTabla].push(item.json);\n}\n\nreturn Object.entries(grouped).map(([table, registros]) => ({\n  json: { table, registros }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1280,
+        0
+      ],
+      "id": "1069340a-bf66-4437-a2d3-41948e7404b5",
+      "name": "Organizar Datos1"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  const { id, name } = item.json;\n  return {\n    json: {\n      id,\n      name\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2160,
+        -200
+      ],
+      "id": "532d7da8-0d61-486b-88a9-9e44a18f62ab",
+      "name": "Code1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Crear Tabla en AirTable": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Organizar Datos": {
+      "main": [
+        [
+          {
+            "node": "Indexar por nombre omitir el resto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener datos desde GoogleSheets": {
+      "main": [
+        [
+          {
+            "node": "Organizar Datos",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Organizar Datos1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cron Cada 2 Dias.": {
+      "main": [
+        [
+          {
+            "node": "Get base schema",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Obtener datos desde GoogleSheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Create or update a record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get base schema": {
+      "main": [
+        [
+          {
+            "node": "Remover Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Code4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code4": {
+      "main": [
+        [
+          {
+            "node": "Crear Tabla en AirTable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remover Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Indexar por nombre omitir el resto": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Organizar Datos1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a73c1928-fd15-4d49-bdc0-f9f5a9828cf6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ff38a89fd3bb290d6017bce3c34973507782e13ca4a55590eaaeae5ae54b9a98"
+  },
+  "id": "QYayuaVOPv54bIW0",
+  "tags": []
+}
